@@ -186,7 +186,7 @@ elif choice == "Recommandation de Film":
                 except sr.UnknownValueError:
                     st.warning("Cliquez sur Terminer l'enregistrement")
                 except sr.RequestError as e:
-                    st.error(f"Je n'ai pas pu trouvé de résultat; {e}")
+                    st.error(f"Je n'ai pas pu trouver de résultat; {e}")
 
                 if stop_recording:
                     st.session_state.recording = False  # Arrêter l'enregistrement si stop_recording est activé

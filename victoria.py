@@ -1,1 +1,3 @@
 print("Coucou")
+
+print("Salut")
