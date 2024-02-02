@@ -323,17 +323,63 @@ elif choice == "Recherche de Personnalités":
 
             st.write(f"Vous avez sélectionné le film : {selected_movie}")
 
+            def get_movie_details(selected_movie):
+                tmdb_params = {
+                'api_key': TMDB_API_KEY,
+                    'query': selected_movie,
+                    'language': 'fr'
+                }
+                tmdb_response = requests.get('https://api.themoviedb.org/3/search/movie', params=tmdb_params)
+                tmdb_data = tmdb_response.json()
+                if 'results' in tmdb_data and tmdb_data['results']:
+                    tmdb_movie_info = tmdb_data['results'][0]
+                    poster = f"https://image.tmdb.org/t/p/w500/{tmdb_movie_info['poster_path']}" if 'poster_path' in tmdb_movie_info else None
+                    overview = tmdb_movie_info.get('overview', 'No overview available')
+                    
+                else:
+                    poster, overview = None, 'No overview available'
+
+                omdb_params = {
+                    'apikey': OMDB_API_KEY,
+                    't': selected_movie,
+                    'r': 'json',
+                    'plot': 'full'
+                }
+                omdb_response = requests.get('http://www.omdbapi.com/', params=omdb_params)
+                omdb_data = omdb_response.json()
+                cast = omdb_data.get('Actors', None)
+                genre = omdb_data.get('Genre', None)
+                rating = omdb_data.get('imdbRating', None)
+                return poster, overview, cast, genre, rating
+
             if selected_movie:
+                details = get_movie_details(selected_movie)
+
+                if details[0] is not None:
+                    st.markdown(
+                        f'<div style="display: flex; justify-content: center;">'
+                        f'<img src="{details[0]}" alt="Affiche pour {selected_movie}" style="max-width: 100%; height: auto; max-height: 400px;">'
+                        f'</div>',
+                        unsafe_allow_html=True
+                    )               
+                st.write("")
+                st.write("")        
+                st.markdown(f"**Genre:** {details[3] or 'Pas de genre disponible'}")
+                st.markdown(f"**Distribution:** {details[2] or 'Pas de distibution disponible'}")
+                st.markdown(f"**Note:** {details[4] or 'Pas de note disponible'}")
+                st.markdown(f"**Synopsis:** \n\n {details[1] or 'Aucun résumé disponible.'}")
                 year = filtered_sub_df.loc[filtered_sub_df['title'] == selected_movie, 'startYear'].values[0]
                 year_int64 = int(year)
                 st.write(f"Année: {year_int64}")
+
+            else:
+                st.write(f"Aucun résultat trouvé pour {personality_name}.")
         else:
             st.write(f"Aucun résultat trouvé pour {personality_name}.")
     else:
         # Lorsque le nom de la personnalité n'est pas encore renseigné
         st.write("Entrez le nom d'une personnalité pour afficher les résultats.")
         selected_movie = None  # Pour que la boîte de sélection reste vide
-
 
 #KPI
 
@@ -586,7 +632,7 @@ elif choice == "Exploration des Données":
 
         fig, ax = plt.subplots(figsize=(8, 6))
         nx.draw(G, pos, with_labels=True, font_size=8, node_size=700, node_color="skyblue", font_color="black", font_weight="bold", edge_color="gray")
-        plt.title("Relations entre Réalisateurs, Scénaristes et Autres")
+        plt.title("Relations entre Réalisateurs, Scénaristes et Acteurs")
         st.write("")
         st.write("")
         st.pyplot(fig)
